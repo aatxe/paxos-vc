@@ -3,8 +3,6 @@ use std::collections::HashSet;
 use std::future::Future;
 use std::io;
 use std::pin::Pin;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicU32, Ordering};
 use std::time::{Duration, Instant};
 
 use fehler::throws;
@@ -51,7 +49,7 @@ pub struct Paxos {
     /// the last view we attempted to install
     last_attempted_view: u32,
     /// the current view that we have installed
-    current_view: Arc<AtomicU32>,
+    current_view: u32,
     /// a set of all the current view change messages received.
     view_change_state: HashSet<VC>,
 }
@@ -71,30 +69,18 @@ impl Paxos {
             progress_timer: timer::delay_for(progress_length),
             vc_proof_timer: Interval::new_interval(proof_length),
             last_attempted_view: 0,
-            current_view: Arc::new(AtomicU32::new(0)),
+            current_view: 0,
             view_change_state: HashSet::new(),
         }
-    }
-
-    /// Gets a reference to the view for this instance of Paxos
-    /// Note: if you simply need the value right now, use `Paxos::current_view(...)` instead.
-    pub fn view(&self) -> Arc<AtomicU32> {
-        self.current_view.clone()
-    }
-
-    /// Gets the current view for this instance of Paxos
-    /// Note: if you need to keep track of the view as it changes, use `Paxos::view(...)` instead.
-    pub fn current_view(&self) -> u32 {
-        self.current_view.load(Ordering::SeqCst)
     }
 
     /// Computes the id of the current leader according to the installed view
     pub fn current_leader(&self) -> u32 {
         match u32::try_from(self.nodes.len()) {
-            Ok(num_nodes) => self.current_view() % num_nodes,
+            Ok(num_nodes) => self.current_view % num_nodes,
             // if the length (usize) can't be converted into a u32, then there are more nodes than
             // could possibly fit into the current view counter. Thus, just the view will suffice.
-            Err(_) => self.current_view(),
+            Err(_) => self.current_view,
         }
     }
 
@@ -102,7 +88,7 @@ impl Paxos {
     /// invariant: a node should only ever try to install larger views than what it has installed
     #[throws(io::Error)]
     fn start_view_change(&mut self, new_view: u32) {
-        assert!(new_view > self.current_view());
+        assert!(new_view > self.current_view);
 
         // clear the current view change state
         self.view_change_state.clear();
@@ -138,10 +124,10 @@ impl Paxos {
     /// invariant: a view can only be installed with a proof in the form of either view changes from
     /// a majority of nodes or a vc proof message from another node
     fn install_view(&self) {
-        let last_installed = self.current_view.swap(self.last_attempted_view, Ordering::SeqCst);
         // we should never install a view that is smaller than the one we already had
-        assert!(self.last_attempted_view >= last_installed);
-        // output leader after installing the new view
+        assert!(self.last_attempted_view >= self.current_view);
+
+        self.current_view = self.last_attempted_view;
         self.output_leader();
     }
 
@@ -153,7 +139,7 @@ impl Paxos {
     /// Outputs the current leader and the new view.
     fn output_leader(&self) {
         println!("{}: Server {} is the new leader of view {}",
-                 self.pid, self.current_leader(), self.current_view());
+                 self.pid, self.current_leader(), self.current_view);
     }
 
     /// Either crash or do nothing, depending on the pid and test case.
@@ -250,7 +236,7 @@ impl Stream for Paxos {
         if let Poll::Ready(Some(_)) = poll_vc_proof_timer {
            // then we'll multicast a vc proof to everyone 
             let server_id = self.pid;
-            let installed = self.current_view();
+            let installed = self.current_view;
             return Poll::Ready(Some(self.nodes.multicast_send(
                 Message::VCProof { server_id, installed }
             )));
