@@ -10,7 +10,7 @@ use std::time::{Duration, Instant};
 use fehler::throws;
 use futures::{Poll, Sink, Stream};
 use futures::task::Context;
-use tokio::timer::{self, Delay};
+use tokio::timer::{self, Delay, Interval};
 
 use crate::TestCase;
 use crate::msg::Message;
@@ -20,9 +20,23 @@ use crate::net::Nodes;
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 struct VC(u32, u32);
 
+/// A configuration for constructing a new instance of Paxos.
+pub struct PaxosConfig {
+    /// the process id of the current node
+    pub pid: usize,
+    /// all the nodes in the system
+    pub nodes: Nodes,
+    /// the current test case being executed
+    pub test_case: TestCase,
+    /// the duration of the progress timer in seconds
+    pub progress_timer_length: u64,
+    /// the duration of the vc proof timer in seconds
+    pub vc_proof_timer_length: u64,
+}
+
 /// An asynchronous implementation of Paxos.
 pub struct Paxos {
-    /// pid of the current node
+    /// the process id of the current node
     pid: u32,
     /// all the nodes in the system
     nodes: Nodes,
@@ -32,6 +46,8 @@ pub struct Paxos {
     progress_length: Duration,
     /// a delay until the progress timer is finished
     progress_timer: Delay,
+    /// an interval for sending vcproof messages every so often
+    vc_proof_timer: Interval,
     /// the last view we attempted to install
     last_attempted_view: u32,
     /// the current view that we have installed
@@ -43,12 +59,17 @@ pub struct Paxos {
 impl Paxos {
     /// Creates a new instance of Paxos.
     #[throws]
-    pub fn new(pid: usize, nodes: Nodes, test_case: TestCase, progress_secs: u64) -> Paxos {
-        let progress_length = Duration::from_secs(progress_secs);
+    pub fn new(config: PaxosConfig) -> Paxos {
+        let PaxosConfig {
+            pid, nodes, test_case, progress_timer_length, vc_proof_timer_length
+        } = config;
+        let progress_length = Duration::from_secs(progress_timer_length);
+        let proof_length = Duration::from_secs(vc_proof_timer_length);
         Paxos {
             pid: u32::try_from(pid)?,
             nodes, test_case, progress_length,
             progress_timer: timer::delay_for(progress_length),
+            vc_proof_timer: Interval::new_interval(proof_length),
             last_attempted_view: 0,
             current_view: Arc::new(AtomicU32::new(0)),
             view_change_state: HashSet::new(),
@@ -214,17 +235,27 @@ impl Stream for Paxos {
     type Item = io::Result<()>;
 
     fn poll_next(mut self: Pin<&mut Self>, ctx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        match Future::poll(Pin::new(&mut self.progress_timer), ctx) {
-            // progress timer expired
-            Poll::Ready(()) =>  {
-                // so, we'll start a view change to the next view
-                let new_view = self.last_attempted_view + 1;
-                Poll::Ready(Some(self.start_view_change(new_view)))
-            },
+        // note: we have to ensure we poll both futures each time!
+        let poll_progress_timer = Future::poll(Pin::new(&mut self.progress_timer), ctx);
+        let poll_vc_proof_timer = Stream::poll_next(Pin::new(&mut self.vc_proof_timer), ctx);
 
-            // progress timer is still going
-            Poll::Pending => Poll::Pending,
+        // if progress timer expired,
+        if let Poll::Ready(()) = poll_progress_timer {
+            // then we'll start a view change to the next view
+            let new_view = self.last_attempted_view + 1;
+            return Poll::Ready(Some(self.start_view_change(new_view)))
         }
 
+        // if vc proof timer fired,
+        if let Poll::Ready(Some(_)) = poll_vc_proof_timer {
+           // then we'll multicast a vc proof to everyone 
+            let server_id = self.pid;
+            let installed = self.current_view();
+            return Poll::Ready(Some(self.nodes.multicast_send(
+                Message::VCProof { server_id, installed }
+            )));
+        }
+
+        Poll::Pending
     }
 }

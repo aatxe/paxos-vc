@@ -41,22 +41,30 @@ async fn main() -> Result<(), fehler::Exception> {
                 .help("Sets which test case to run, based on assignment description")
                 .takes_value(true)
         ).arg(
-            Arg::with_name("progress_time")
+            Arg::with_name("progress_timer_length")
                 .short("p")
                 .long("progress")
                 .value_name("SECONDS")
                 .help("Sets the amount for the progress timer in seconds, defaults to 15 seconds")
+                .takes_value(true)
+        ).arg(
+            Arg::with_name("vc_proof_timer_length")
+                .short("v")
+                .long("vcproof")
+                .value_name("SECONDS")
+                .help("Sets the amount for the vc proof timer in seconds, defaults to 3 seconds")
                 .takes_value(true)
         );
     let matches = cli.get_matches();
     let hostname = matches.value_of("name").unwrap();
     let hostfile_path = matches.value_of("hostfile").unwrap_or("hosts");
     let test_case = value_t!(matches, "test_case", TestCase).unwrap_or_default();
-    let progress_time = value_t!(matches, "progress_time", u64).unwrap_or(15);
+    let progress_timer_length = value_t!(matches, "progress_timer_length", u64).unwrap_or(15);
+    let vc_proof_timer_length = value_t!(matches, "vc_proof_timer_length", u64).unwrap_or(3);
 
     let hostfile = load_hostfile(hostfile_path)?;
     let system = System::from_hosts(hostfile, hostname).await?;
-    system.paxos(test_case, progress_time).await
+    system.paxos(test_case, progress_timer_length, vc_proof_timer_length).await
 }
 
 #[throws(io::Error)]

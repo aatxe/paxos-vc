@@ -38,7 +38,7 @@ impl Decoder for MessageCodec {
             2 => {
                 if buf.remaining() < 8 { return None }
                 Some(Message::ViewChange {
-                    server_id: buf.get_u32_be(), 
+                    server_id: buf.get_u32_be(),
                     attempted: buf.get_u32_be(),
                 })
             },
@@ -46,7 +46,7 @@ impl Decoder for MessageCodec {
             3 => {
                 if buf.remaining() < 8 { return None }
                 Some(Message::VCProof {
-                    server_id: buf.get_u32_be(), 
+                    server_id: buf.get_u32_be(),
                     installed: buf.get_u32_be(),
                 })
             },

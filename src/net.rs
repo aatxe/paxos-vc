@@ -12,7 +12,7 @@ use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
 use crate::TestCase;
 use crate::msg::{Message, MessageCodec};
-use crate::paxos::Paxos;
+use crate::paxos::{Paxos, PaxosConfig};
 
 pub type ProtocolSocket = UdpFramed<MessageCodec>;
 
@@ -96,15 +96,19 @@ impl System {
     }
 
     #[throws]
-    pub async fn paxos(mut self, test_case: TestCase, progress_secs: u64) {
+    pub async fn paxos(
+        mut self, test_case: TestCase, progress_timer_length: u64, vc_proof_timer_length: u64
+    ) {
         // create an outgoing socket to actually forward sent messages along
         let outgoing_socket = outgoing_socket().await?;
         let mut outgoing_future = self.take_outgoing().map(|m| Ok(m)).forward(outgoing_socket);
 
         // create a new instance of the Paxos protocol
-        let paxos = Paxos::new(
-            self.pid, self.nodes.clone(), test_case, progress_secs
-        )?;
+        let paxos = Paxos::new(PaxosConfig {
+            pid: self.pid,
+            nodes: self.nodes.clone(),
+            test_case, progress_timer_length, vc_proof_timer_length
+        })?;
 
         // split paxos into a separate sink and stream
         let (paxos_inc, paxos_out) = paxos.split();
