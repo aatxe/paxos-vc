@@ -184,6 +184,7 @@ impl Paxos {
         use TestCase::*;
 
         match self.test_case {
+            NormalCase => process::exit(0),
             FullRotation if self.current_view != 0 && self.current_leader() == 0 =>
                 process::exit(0),
             SingleCrash if self.current_view == 2 => process::exit(0),

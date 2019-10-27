@@ -42,7 +42,7 @@ impl Node {
     #[throws(io::Error)]
     fn resolve_from_hostname<S: AsRef<str>>(hostname: S) -> Node {
         while let Err(e) = format!("{}:{}", hostname.as_ref(), PORT_NUMBER).to_socket_addrs() {
-            eprintln!("{:?}", e);
+            eprintln!("{}", e);
             // really ought to use exponential backoff here and eventually throw the error
             thread::sleep(Duration::from_millis(500));
         }
