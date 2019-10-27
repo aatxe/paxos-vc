@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use std::future::Future;
 use std::io;
 use std::pin::Pin;
+use std::process;
 use std::time::{Duration, Instant};
 
 use fehler::throws;
@@ -107,14 +108,14 @@ impl Paxos {
     }
 
     /// Installs the last attempted view if we have seen a majority attempting to install it
-    fn install_view_if_possible(&self) {
+    fn install_view_if_possible(&mut self) {
         let vc_received = self.view_change_state.iter()
             .filter(|vc| vc.1 == self.last_attempted_view)
             .count();
         // if we have a majority attempting to install the last_attempted_view, then
         if vc_received >= (self.nodes.len() / 2) + 1 {
             // first, invoke test case hook to see if we should crash
-            self.test_case_hook();
+            self.test_case_crash_hook();
             // then, we can go ahead and install the view (since we have no reconciliation phase)
             self.install_view()
         }
@@ -123,12 +124,13 @@ impl Paxos {
     /// Installs the last attempted view unconditionally
     /// invariant: a view can only be installed with a proof in the form of either view changes from
     /// a majority of nodes or a vc proof message from another node
-    fn install_view(&self) {
+    fn install_view(&mut self) {
         // we should never install a view that is smaller than the one we already had
         assert!(self.last_attempted_view >= self.current_view);
 
         self.current_view = self.last_attempted_view;
         self.output_leader();
+        self.test_case_exit_hook();
     }
 
     /// Resets the progress timer to its full length from now.
@@ -163,13 +165,30 @@ impl Paxos {
     /// | 5   | *          | nop       |
     /// \------------------------------/
     /// ```
-    fn test_case_hook(&self) {
+    fn test_case_crash_hook(&self) {
         use TestCase::*;
 
         match self.test_case {
             SingleCrash if self.pid == 1 => panic!("crashing"),
-            TwoCrashes if self.pid < 3 => panic!("crashing"),
-            ThreeCrashes if self.pid < 4 => panic!("crashing"),
+            TwoCrashes if self.pid < 3 && self.pid > 0 => panic!("crashing"),
+            ThreeCrashes if self.pid < 4 && self.pid > 0 => panic!("crashing"),
+            _ => (),
+        }
+    }
+
+    /// Either exits the program or does nothing, depending on the pid and test case.
+    ///
+    /// In test case 2, the node quits after installing a view with leader 0 again.
+    /// In all other test cases, the node quits after installing a view.
+    fn test_case_exit_hook(&self) -> () {
+        use TestCase::*;
+
+        match self.test_case {
+            FullRotation if self.current_view != 0 && self.current_leader() == 0 =>
+                process::exit(0),
+            SingleCrash if self.current_view == 2 => process::exit(0),
+            TwoCrashes if self.current_view == 3 => process::exit(0),
+            ThreeCrashes if self.current_view == 4 => process::exit(0),
             _ => (),
         }
     }
@@ -200,7 +219,7 @@ impl Sink<Message> for Paxos {
             }
 
             Message::VCProof { installed, .. } => {
-                if installed == self.last_attempted_view {
+                if installed == self.last_attempted_view && installed > self.current_view {
                     // someone installed this view before us, so we can too!
                     self.install_view();
                 }

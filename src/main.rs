@@ -1,3 +1,5 @@
+#![feature(never_type)]
+
 mod msg;
 mod net;
 mod paxos;
@@ -14,7 +16,7 @@ use fehler::throws;
 use crate::net::System;
 
 #[tokio::main]
-async fn main() -> Result<(), fehler::Exception> {
+async fn main() -> Result<!, fehler::Exception> {
     let cli = App::new("paxos-vc")
         .version("1.0")
         .author("Aaron Weiss <awe@pdgn.co>")
@@ -59,8 +61,8 @@ async fn main() -> Result<(), fehler::Exception> {
     let hostname = matches.value_of("name").unwrap();
     let hostfile_path = matches.value_of("hostfile").unwrap_or("hosts");
     let test_case = value_t!(matches, "test_case", TestCase).unwrap_or_default();
-    let progress_timer_length = value_t!(matches, "progress_timer_length", u64).unwrap_or(15);
-    let vc_proof_timer_length = value_t!(matches, "vc_proof_timer_length", u64).unwrap_or(3);
+    let progress_timer_length = value_t!(matches, "progress_timer_length", u64).unwrap_or(3);
+    let vc_proof_timer_length = value_t!(matches, "vc_proof_timer_length", u64).unwrap_or(1);
 
     let hostfile = load_hostfile(hostfile_path)?;
     let system = System::from_hosts(hostfile, hostname).await?;

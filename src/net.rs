@@ -96,9 +96,10 @@ impl System {
     }
 
     #[throws]
+    #[allow(unreachable_code)]
     pub async fn paxos(
         mut self, test_case: TestCase, progress_timer_length: u64, vc_proof_timer_length: u64
-    ) {
+    ) -> ! {
         // create an outgoing socket to actually forward sent messages along
         let outgoing_socket = outgoing_socket().await?;
         let mut outgoing_future = self.take_outgoing().map(|m| Ok(m)).forward(outgoing_socket);
@@ -120,13 +121,15 @@ impl System {
 
         let mut paxos_out = paxos_out.fuse();
 
-        select! {
-            res = outgoing_future => res?,
-            res = incoming_future => res?,
-            opt_res = paxos_out.next() => match opt_res {
-                Some(res) => res?,
-                None => (),
-            },
+        loop {
+            select! {
+                res = outgoing_future => res?,
+                res = incoming_future => res?,
+                opt_res = paxos_out.next() => match opt_res {
+                    Some(res) => res?,
+                    None => (),
+                },
+            }
         }
     }
 }
