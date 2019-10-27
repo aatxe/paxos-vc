@@ -3,11 +3,16 @@ extern crate clap;
 #[macro_use]
 extern crate fehler;
 
+use std::fs::File;
+use std::io;
+use std::io::prelude::*;
+use std::path::Path;
 use std::str::FromStr;
 
 use clap::{Arg, App};
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), fehler::Exception> {
     let cli = App::new("paxos-vc")
         .version("1.0")
         .author("Aaron Weiss <awe@pdgn.co>")
@@ -38,8 +43,18 @@ fn main() {
     let hostname = matches.value_of("name").unwrap();
     let hostfile_path = matches.value_of("hostfile").unwrap_or("hosts");
     let test_case = value_t!(matches, "testcase", TestCase).unwrap_or_default();
+
+    let hostfile = load_hostfile(hostfile_path)?;
+
+    unimplemented!()
 }
 
+#[throws(io::Error)]
+fn load_hostfile<P: AsRef<Path>>(path: P) -> Vec<String> {
+    let mut buffer = String::new();
+    File::open(path)?.read_to_string(&mut buffer)?;
+    buffer.lines().map(|s| s.to_owned()).collect()
+}
 
 #[repr(u8)]
 pub enum TestCase {
