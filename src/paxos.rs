@@ -91,7 +91,9 @@ impl Paxos {
             .count();
         // if we have a majority attempting to install the last_attempted_view, then
         if vc_received >= (self.nodes.len() / 2) + 1 {
-            // we can go ahead and install the view (since we have no reconciliation phase)
+            // first, invoke test case hook to see if we should crash
+            self.test_case_hook();
+            // then, we can go ahead and install the view (since we have no reconciliation phase)
             self.install_view()
         }
     }
@@ -103,6 +105,38 @@ impl Paxos {
         let last_installed = self.current_view.swap(self.last_attempted_view, Ordering::SeqCst);
         // we should never install a view that is smaller than the one we already had
         assert!(self.last_attempted_view >= last_installed);
+    }
+
+    /// Either crash or do nothing, depending on the pid and test case.
+    ///
+    /// The behavior is defined as follows:
+    /// ```
+    /// /------------------------------\
+    /// | pid | test case  | behavior  |
+    /// |------------------------------|
+    /// | 1   | 1, 2       | nop       |
+    /// | 1   | 3, 4, 5    | crash     |
+    /// |------------------------------|
+    /// | 2   | 1, 2, 3    | nop       |
+    /// | 2   | 4, 5       | crash     |
+    /// |------------------------------|
+    /// | 3   | 1, 2, 3, 4 | nop       |
+    /// | 3   | 5          | crash     |
+    /// |------------------------------|
+    /// | 4   | *          | nop       |
+    /// |------------------------------|
+    /// | 5   | *          | nop       |
+    /// \------------------------------/
+    /// ```
+    fn test_case_hook(&self) {
+        use TestCase::*;
+
+        match self.test_case {
+            SingleCrash if self.pid == 1 => panic!("crashing"),
+            TwoCrashes if self.pid < 3 => panic!("crashing"),
+            ThreeCrashes if self.pid < 4 => panic!("crashing"),
+            _ => (),
+        }
     }
 }
 
