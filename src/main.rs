@@ -3,6 +3,8 @@ extern crate clap;
 #[macro_use]
 extern crate fehler;
 
+mod msg;
+
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
@@ -45,6 +47,7 @@ async fn main() -> Result<(), fehler::Exception> {
     let test_case = value_t!(matches, "testcase", TestCase).unwrap_or_default();
 
     let hostfile = load_hostfile(hostfile_path)?;
+    let node_count = hostfile.len();
 
     unimplemented!()
 }
