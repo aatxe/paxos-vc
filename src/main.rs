@@ -35,6 +35,8 @@ fn main() {
                 .takes_value(true)
         );
     let matches = cli.get_matches();
+    let hostname = matches.value_of("name").unwrap();
+    let hostfile_path = matches.value_of("hostfile").unwrap_or("hosts");
     let test_case = value_t!(matches, "testcase", TestCase).unwrap_or_default();
 }
 
