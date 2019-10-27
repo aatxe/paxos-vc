@@ -54,6 +54,10 @@ impl Node {
 pub struct Nodes(UnboundedSender<(Message, SocketAddr)>, Arc<Vec<Node>>);
 
 impl Nodes {
+    pub fn len(&self) -> usize {
+        self.1.len()
+    }
+
     #[throws(io::Error)]
     pub fn send(&mut self, pid: u32, msg: Message) -> () {
         let node = self.1.iter().nth(usize::try_from(pid).map_err(|e| {

@@ -5,6 +5,7 @@ extern crate fehler;
 
 mod msg;
 mod net;
+mod paxos;
 
 use std::fs::File;
 use std::io;
@@ -51,8 +52,6 @@ async fn main() -> Result<(), fehler::Exception> {
 
     let hostfile = load_hostfile(hostfile_path)?;
     let node_count = hostfile.len();
-
-    let view_id = Arc::new(AtomicU32::new(0));
 
     unimplemented!()
 }
