@@ -33,7 +33,7 @@ pub async fn outgoing_socket() -> ProtocolSocket {
     make_proc_socket(PORT_NUMBER + 1).await?
 }
 
-pub struct Node {
+struct Node {
     addr: SocketAddr,
 }
 
