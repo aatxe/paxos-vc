@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use fehler::throws;
+use fehler::{throw, throws};
 use futures::select;
 use futures::stream::StreamExt;
 use tokio::net::{UdpFramed, UdpSocket};
@@ -41,10 +41,14 @@ impl Node {
     /// Attempt to resolve the given hostname repeatedly until success.
     #[throws(io::Error)]
     fn resolve_from_hostname<S: AsRef<str>>(hostname: S) -> Node {
+        let mut attempts = 0;
         while let Err(e) = format!("{}:{}", hostname.as_ref(), PORT_NUMBER).to_socket_addrs() {
+            attempts += 1;
             eprintln!("{}", e);
-            // really ought to use exponential backoff here and eventually throw the error
             thread::sleep(Duration::from_millis(500));
+
+            // if it takes longer than five minutes to resolve the hostname, we'll just give up
+            if attempts > 2 * 60 * 5 { throw!(e) }
         }
 
         let addr =
