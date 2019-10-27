@@ -1,6 +1,7 @@
 use std::io;
 
 use bytes::{Buf, BufMut, BytesMut, IntoBuf};
+use fehler::{throw, throws};
 use tokio::codec::{Decoder, Encoder};
 
 #[derive(Clone, Copy, Debug)]

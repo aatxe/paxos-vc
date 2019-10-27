@@ -1,12 +1,16 @@
 use std::convert::TryFrom;
 use std::collections::HashSet;
+use std::future::Future;
 use std::io;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, Ordering};
+use std::time::{Duration, Instant};
 
-use futures::{Poll, Sink};
+use fehler::throws;
+use futures::{Poll, Sink, Stream};
 use futures::task::Context;
+use tokio::timer::{self, Delay};
 
 use crate::TestCase;
 use crate::msg::Message;
@@ -16,6 +20,7 @@ use crate::net::Nodes;
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 struct VC(u32, u32);
 
+/// An asynchronous implementation of Paxos.
 pub struct Paxos {
     /// pid of the current node
     pid: u32,
@@ -23,6 +28,10 @@ pub struct Paxos {
     nodes: Nodes,
     /// the current test case being executed
     test_case: TestCase,
+    /// the length of the progress timer
+    progress_length: Duration,
+    /// a delay until the progress timer is finished
+    progress_timer: Delay,
     /// the last view we attempted to install
     last_attempted_view: u32,
     /// the current view that we have installed
@@ -32,30 +41,33 @@ pub struct Paxos {
 }
 
 impl Paxos {
+    /// Creates a new instance of Paxos.
     #[throws]
-    pub fn new(pid: usize, nodes: Nodes, test_case: TestCase) -> Paxos {
+    pub fn new(pid: usize, nodes: Nodes, test_case: TestCase, progress_secs: u64) -> Paxos {
+        let progress_length = Duration::from_secs(progress_secs);
         Paxos {
             pid: u32::try_from(pid)?,
-            nodes, test_case,
+            nodes, test_case, progress_length,
+            progress_timer: timer::delay_for(progress_length),
             last_attempted_view: 0,
             current_view: Arc::new(AtomicU32::new(0)),
             view_change_state: HashSet::new(),
         }
     }
 
-    /// gets a reference to the view for this instance of Paxos
-    /// note: if you simply need the value right now, use `Paxos::current_view(...)` instead.
+    /// Gets a reference to the view for this instance of Paxos
+    /// Note: if you simply need the value right now, use `Paxos::current_view(...)` instead.
     pub fn view(&self) -> Arc<AtomicU32> {
         self.current_view.clone()
     }
 
-    /// gets the current view for this instance of Paxos
-    /// note: if you need to keep track of the view as it changes, use `Paxos::view(...)` instead.
+    /// Gets the current view for this instance of Paxos
+    /// Note: if you need to keep track of the view as it changes, use `Paxos::view(...)` instead.
     pub fn current_view(&self) -> u32 {
         self.current_view.load(Ordering::SeqCst)
     }
 
-    /// computes the id of the current leader according to the installed view
+    /// Computes the id of the current leader according to the installed view
     pub fn current_leader(&self) -> u32 {
         match u32::try_from(self.nodes.len()) {
             Ok(num_nodes) => self.current_view() % num_nodes,
@@ -65,7 +77,7 @@ impl Paxos {
         }
     }
 
-    /// starts a view change to the given view by sending out view change messages
+    /// Starts a view change to the given view by sending out view change messages
     /// invariant: a node should only ever try to install larger views than what it has installed
     #[throws(io::Error)]
     fn start_view_change(&mut self, new_view: u32) {
@@ -82,9 +94,12 @@ impl Paxos {
             server_id: self.pid,
             attempted: new_view,
         })?;
+
+        // resets the progress timer
+        self.reset_progress_timer();
     }
 
-    /// installs the last attempted view if we have seen a majority attempting to install it
+    /// Installs the last attempted view if we have seen a majority attempting to install it
     fn install_view_if_possible(&self) {
         let vc_received = self.view_change_state.iter()
             .filter(|vc| vc.1 == self.last_attempted_view)
@@ -98,13 +113,26 @@ impl Paxos {
         }
     }
 
-    /// installs the last attempted view unconditionally
+    /// Installs the last attempted view unconditionally
     /// invariant: a view can only be installed with a proof in the form of either view changes from
     /// a majority of nodes or a vc proof message from another node
     fn install_view(&self) {
         let last_installed = self.current_view.swap(self.last_attempted_view, Ordering::SeqCst);
         // we should never install a view that is smaller than the one we already had
         assert!(self.last_attempted_view >= last_installed);
+        // output leader after installing the new view
+        self.output_leader();
+    }
+
+    /// Resets the progress timer to its full length from now.
+    fn reset_progress_timer(&mut self) {
+        self.progress_timer.reset(Instant::now() + self.progress_length);
+    }
+
+    /// Outputs the current leader and the new view.
+    fn output_leader(&self) {
+        println!("{}: Server {} is the new leader of view {}",
+                 self.pid, self.current_leader(), self.current_view());
     }
 
     /// Either crash or do nothing, depending on the pid and test case.
@@ -149,10 +177,8 @@ impl Sink<Message> for Paxos {
 
     #[throws(io::Error)]
     fn start_send(mut self: Pin<&mut Self>, msg: Message) -> () {
-        use Message::*;
-
         match msg {
-            ViewChange { server_id, attempted } => {
+            Message::ViewChange { server_id, attempted } => {
                 // this view change message is stale
                 if attempted < self.last_attempted_view { return }
 
@@ -166,7 +192,7 @@ impl Sink<Message> for Paxos {
                 self.install_view_if_possible();
             }
 
-            VCProof { installed, .. } => {
+            Message::VCProof { installed, .. } => {
                 if installed == self.last_attempted_view {
                     // someone installed this view before us, so we can too!
                     self.install_view();
@@ -181,5 +207,24 @@ impl Sink<Message> for Paxos {
 
     fn poll_close(self: Pin<&mut Self>, _: &mut Context) -> Poll<Result<(), Self::Error>> {
         Poll::Ready(Ok(()))
+    }
+}
+
+impl Stream for Paxos {
+    type Item = io::Result<()>;
+
+    fn poll_next(mut self: Pin<&mut Self>, ctx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        match Future::poll(Pin::new(&mut self.progress_timer), ctx) {
+            // progress timer expired
+            Poll::Ready(()) =>  {
+                // so, we'll start a view change to the next view
+                let new_view = self.last_attempted_view + 1;
+                Poll::Ready(Some(self.start_view_change(new_view)))
+            },
+
+            // progress timer is still going
+            Poll::Pending => Poll::Pending,
+        }
+
     }
 }

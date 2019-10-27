@@ -1,14 +1,18 @@
-use std::convert::TryFrom;
 use std::io;
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
+use fehler::throws;
+use futures::select;
+use futures::stream::StreamExt;
 use tokio::net::{UdpFramed, UdpSocket};
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
+use crate::TestCase;
 use crate::msg::{Message, MessageCodec};
+use crate::paxos::Paxos;
 
 pub type ProtocolSocket = UdpFramed<MessageCodec>;
 
@@ -28,7 +32,6 @@ pub async fn incoming_socket() -> ProtocolSocket {
 pub async fn outgoing_socket() -> ProtocolSocket {
     make_proc_socket(PORT_NUMBER + 1).await?
 }
-
 
 pub struct Node {
     addr: SocketAddr,
@@ -59,14 +62,6 @@ impl Nodes {
     }
 
     #[throws(io::Error)]
-    pub fn send(&mut self, pid: u32, msg: Message) -> () {
-        let node = self.1.iter().nth(usize::try_from(pid).map_err(|e| {
-            io::Error::new(io::ErrorKind::InvalidInput, e)
-        })?).ok_or_else(|| -> io::Error { io::ErrorKind::InvalidInput.into() })?;
-        self.0.try_send((msg, node.addr)).unwrap();
-    }
-
-    #[throws(io::Error)]
     pub fn multicast_send(&mut self, msg: Message) -> () {
         for node in self.1.iter() {
             self.0.try_send((msg, node.addr)).unwrap();
@@ -74,18 +69,60 @@ impl Nodes {
     }
 }
 
-pub struct System(ProtocolSocket, Option<UnboundedReceiver<(Message, SocketAddr)>>, Nodes);
+pub struct System {
+    pid: usize,
+    incoming: ProtocolSocket,
+    opt_rx: Option<UnboundedReceiver<(Message, SocketAddr)>>,
+    nodes: Nodes,
+}
 
 impl System {
     #[throws(io::Error)]
-    pub async fn from_hosts(hosts: Vec<String>) -> System {
+    pub async fn from_hosts(hosts: Vec<String>, hostname: &str) -> System {
+        let pid = hosts.iter().take_while(|curr_host| curr_host != &hostname).count();
         let nodes: io::Result<Vec<_>> = hosts.iter().map(Node::resolve_from_hostname).collect();
         let incoming = incoming_socket().await?;
         let (tx, rx) = mpsc::unbounded_channel();
-        System(incoming, Some(rx), Nodes(tx, Arc::new(nodes?)))
+        System {
+            pid, incoming,
+            opt_rx: Some(rx),
+            nodes: Nodes(tx, Arc::new(nodes?))
+        }
     }
 
-    pub fn take_outgoing(&mut self) -> UnboundedReceiver<(Message, SocketAddr)> {
-        self.1.take().unwrap()
+    /// gets the outgoing receiver from this system, fails on subsequent attempts
+    fn take_outgoing(&mut self) -> UnboundedReceiver<(Message, SocketAddr)> {
+        self.opt_rx.take().unwrap()
+    }
+
+    #[throws]
+    pub async fn paxos(mut self, test_case: TestCase, progress_secs: u64) {
+        // create an outgoing socket to actually forward sent messages along
+        let outgoing_socket = outgoing_socket().await?;
+        let mut outgoing_future = self.take_outgoing().map(|m| Ok(m)).forward(outgoing_socket);
+
+        // create a new instance of the Paxos protocol
+        let paxos = Paxos::new(
+            self.pid, self.nodes.clone(), test_case, progress_secs
+        )?;
+
+        // split paxos into a separate sink and stream
+        let (paxos_inc, paxos_out) = paxos.split();
+
+        // forward received messages to the protocol implementation
+        let mut incoming_future = self.incoming
+            .map(|result| result.map(|msg_with_addr| msg_with_addr.0))
+            .forward(paxos_inc);
+
+        let mut paxos_out = paxos_out.fuse();
+
+        select! {
+            res = outgoing_future => res?,
+            res = incoming_future => res?,
+            opt_res = paxos_out.next() => match opt_res {
+                Some(res) => res?,
+                None => (),
+            },
+        }
     }
 }

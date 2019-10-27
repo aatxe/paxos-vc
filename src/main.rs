@@ -1,8 +1,3 @@
-#[macro_use]
-extern crate clap;
-#[macro_use]
-extern crate fehler;
-
 mod msg;
 mod net;
 mod paxos;
@@ -12,10 +7,11 @@ use std::io;
 use std::io::prelude::*;
 use std::path::Path;
 use std::str::FromStr;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicU32, Ordering};
 
-use clap::{Arg, App};
+use clap::{value_t, Arg, App};
+use fehler::throws;
+
+use crate::net::System;
 
 #[tokio::main]
 async fn main() -> Result<(), fehler::Exception> {
@@ -38,22 +34,29 @@ async fn main() -> Result<(), fehler::Exception> {
                 .value_name("HOSTFILE")
                 .help("Sets the configuration for all hosts in the system")
         ).arg(
-            Arg::with_name("testcase")
+            Arg::with_name("test_case")
                 .short("t")
                 .long("test")
                 .value_name("TEST_CASE")
                 .help("Sets which test case to run, based on assignment description")
                 .takes_value(true)
+        ).arg(
+            Arg::with_name("progress_time")
+                .short("p")
+                .long("progress")
+                .value_name("SECONDS")
+                .help("Sets the amount for the progress timer in seconds, defaults to 15 seconds")
+                .takes_value(true)
         );
     let matches = cli.get_matches();
     let hostname = matches.value_of("name").unwrap();
     let hostfile_path = matches.value_of("hostfile").unwrap_or("hosts");
-    let test_case = value_t!(matches, "testcase", TestCase).unwrap_or_default();
+    let test_case = value_t!(matches, "test_case", TestCase).unwrap_or_default();
+    let progress_time = value_t!(matches, "progress_time", u64).unwrap_or(15);
 
     let hostfile = load_hostfile(hostfile_path)?;
-    let node_count = hostfile.len();
-
-    unimplemented!()
+    let system = System::from_hosts(hostfile, hostname).await?;
+    system.paxos(test_case, progress_time).await
 }
 
 #[throws(io::Error)]

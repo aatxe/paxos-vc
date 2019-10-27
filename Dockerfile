@@ -4,7 +4,7 @@ RUN cargo install cargo-build-deps
 
 RUN USER=root cargo new --bin app
 WORKDIR /app/
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml ./
 RUN cargo build-deps
 
 ADD hosts /app/
