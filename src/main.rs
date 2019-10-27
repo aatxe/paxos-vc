@@ -4,12 +4,15 @@ extern crate clap;
 extern crate fehler;
 
 mod msg;
+mod net;
 
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::path::Path;
 use std::str::FromStr;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 
 use clap::{Arg, App};
 
@@ -48,6 +51,8 @@ async fn main() -> Result<(), fehler::Exception> {
 
     let hostfile = load_hostfile(hostfile_path)?;
     let node_count = hostfile.len();
+
+    let view_id = Arc::new(AtomicU32::new(0));
 
     unimplemented!()
 }
