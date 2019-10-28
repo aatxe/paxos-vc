@@ -86,6 +86,11 @@ impl Paxos {
         }
     }
 
+    /// Determines whether or not this node is currently undergoing a view change.
+    fn in_view_change(&self) -> bool {
+        self.last_attempted_view > self.current_view
+    }
+
     /// Starts a view change to the given view by sending out view change messages
     /// invariant: a node should only ever try to install larger views than what it has installed
     #[throws(io::Error)]
@@ -112,11 +117,14 @@ impl Paxos {
     /// Installs the last attempted view if we have seen a majority attempting to install it
     #[throws(io::Error)]
     fn install_view_if_possible(&mut self) {
+        if !self.in_view_change() { return }
+
         let vc_received = self.view_change_state.iter()
             .filter(|vc| vc.1 == self.last_attempted_view)
             .count();
         // if we have a majority attempting to install the last_attempted_view, then
         if vc_received >= (self.nodes.len() / 2) + 1 {
+            info!("proof found: majority will install view {}", self.last_attempted_view);
             // first, invoke test case hook to see if we should crash
             self.test_case_crash_hook();
             // then, we can go ahead and install the view (since we have no reconciliation phase)
