@@ -1,0 +1,118 @@
+thread 'main' panicked at 'crashing', src/paxos.rs:190:61
+stack backtrace:
+   0: backtrace::backtrace::libunwind::trace
+             at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.37/src/backtrace/libunwind.rs:88
+   1: backtrace::backtrace::trace_unsynchronized
+             at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.37/src/backtrace/mod.rs:66
+   2: std::sys_common::backtrace::_print_fmt
+             at src/libstd/sys_common/backtrace.rs:76
+   3: <std::sys_common::backtrace::_print::DisplayBacktrace as core::fmt::Display>::fmt
+             at src/libstd/sys_common/backtrace.rs:60
+   4: core::fmt::write
+             at src/libcore/fmt/mod.rs:1028
+   5: std::io::Write::write_fmt
+             at src/libstd/io/mod.rs:1412
+   6: std::sys_common::backtrace::_print
+             at src/libstd/sys_common/backtrace.rs:64
+   7: std::sys_common::backtrace::print
+             at src/libstd/sys_common/backtrace.rs:49
+   8: std::panicking::default_hook::{{closure}}
+             at src/libstd/panicking.rs:196
+   9: std::panicking::default_hook
+             at src/libstd/panicking.rs:210
+  10: std::panicking::rust_panic_with_hook
+             at src/libstd/panicking.rs:473
+  11: std::panicking::begin_panic
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/panicking.rs:407
+  12: prj2::paxos::Paxos::test_case_crash_hook
+             at src/paxos.rs:190
+  13: prj2::paxos::Paxos::install_view_if_possible
+             at src/paxos.rs:121
+  14: <prj2::paxos::Paxos as futures_sink::Sink<prj2::msg::Message>>::start_send
+             at src/paxos.rs:240
+  15: <futures_util::stream::split::SplitSink<S,Item> as futures_sink::Sink<Item>>::poll_flush
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-preview-0.3.0-alpha.19/src/stream/split.rs:86
+  16: <futures_util::stream::split::SplitSink<S,Item> as futures_sink::Sink<Item>>::poll_ready
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-preview-0.3.0-alpha.19/src/stream/split.rs:72
+  17: futures_util::stream::forward::Forward<St,Si>::try_start_send
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-preview-0.3.0-alpha.19/src/stream/forward.rs:47
+  18: <futures_util::stream::forward::Forward<St,Si> as core::future::future::Future>::poll
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-preview-0.3.0-alpha.19/src/stream/forward.rs:86
+  19: futures_util::future::FutureExt::poll_unpin
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-preview-0.3.0-alpha.19/src/future/mod.rs:524
+  20: prj2::net::System::paxos::{{closure}}::{{closure}}::{{closure}}
+             at src/net.rs:138
+  21: core::ops::function::impls::<impl core::ops::function::FnMut<A> for &mut F>::call_mut
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libcore/ops/function.rs:265
+  22: prj2::net::System::paxos::{{closure}}::{{closure}}
+             at ./<::futures_util::async_await::select_mod::select macros>:4
+  23: <futures_util::future::poll_fn::PollFn<F> as core::future::future::Future>::poll
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-preview-0.3.0-alpha.19/src/future/poll_fn.rs:54
+  24: std::future::poll_with_tls_context::{{closure}}
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/future.rs:120
+  25: std::future::get_task_context
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/future.rs:110
+  26: std::future::poll_with_tls_context
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/future.rs:120
+  27: prj2::net::System::paxos::{{closure}}
+             at src/net.rs:138
+  28: <std::future::GenFuture<T> as core::future::future::Future>::poll::{{closure}}
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/future.rs:42
+  29: std::future::set_task_context
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/future.rs:78
+  30: <std::future::GenFuture<T> as core::future::future::Future>::poll
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/future.rs:42
+  31: std::future::poll_with_tls_context::{{closure}}
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/future.rs:120
+  32: std::future::get_task_context
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/future.rs:110
+  33: std::future::poll_with_tls_context
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/future.rs:120
+  34: prj2::main::{{closure}}
+             at src/main.rs:85
+  35: <std::future::GenFuture<T> as core::future::future::Future>::poll::{{closure}}
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/future.rs:42
+  36: std::future::set_task_context
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/future.rs:78
+  37: <std::future::GenFuture<T> as core::future::future::Future>::poll
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/future.rs:42
+  38: tokio_executor::enter::Enter::block_on
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/tokio-executor-0.2.0-alpha.6/src/enter.rs:118
+  39: tokio::runtime::threadpool::Runtime::block_on::{{closure}}::{{closure}}
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.0-alpha.6/src/runtime/threadpool/mod.rs:178
+  40: tracing_core::dispatcher::with_default
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.7/src/dispatcher.rs:226
+  41: tokio::runtime::threadpool::Runtime::block_on::{{closure}}
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.0-alpha.6/src/runtime/threadpool/mod.rs:177
+  42: tokio_executor::global::with_default::{{closure}}
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/tokio-executor-0.2.0-alpha.6/src/global.rs:173
+  43: std::thread::local::LocalKey<T>::try_with
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/thread/local.rs:262
+  44: std::thread::local::LocalKey<T>::with
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/thread/local.rs:239
+  45: tokio_executor::global::with_default
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/tokio-executor-0.2.0-alpha.6/src/global.rs:147
+  46: tokio::runtime::threadpool::Runtime::block_on
+             at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.2.0-alpha.6/src/runtime/threadpool/mod.rs:174
+  47: prj2::main
+             at src/main.rs:19
+  48: std::rt::lang_start::{{closure}}
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/rt.rs:64
+  49: std::rt::lang_start_internal::{{closure}}
+             at src/libstd/rt.rs:49
+  50: std::panicking::try::do_call
+             at src/libstd/panicking.rs:292
+  51: __rust_maybe_catch_panic
+             at src/libpanic_unwind/lib.rs:80
+  52: std::panicking::try
+             at src/libstd/panicking.rs:271
+  53: std::panic::catch_unwind
+             at src/libstd/panic.rs:394
+  54: std::rt::lang_start_internal
+             at src/libstd/rt.rs:48
+  55: std::rt::lang_start
+             at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/rt.rs:64
+  56: main
+  57: __libc_start_main
+  58: _start
+note: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.

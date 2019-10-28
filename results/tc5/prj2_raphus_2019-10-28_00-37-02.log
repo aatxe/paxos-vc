@@ -1,0 +1,30 @@
+INFO [prj2] loaded hostfile: hosts
+INFO [prj2::net] attempting to resolve hostname: columba
+[1;38;5;208mWARN[0m [prj2::net] [1;38;5;208mfailed to lookup address information: Name or service not known[0m
+[1;38;5;208mWARN[0m [prj2::net] [1;38;5;208mfailed to lookup address information: Name or service not known[0m
+[1;38;5;208mWARN[0m [prj2::net] [1;38;5;208mfailed to lookup address information: Name or service not known[0m
+[1;38;5;208mWARN[0m [prj2::net] [1;38;5;208mfailed to lookup address information: Name or service not known[0m
+[1;38;5;208mWARN[0m [prj2::net] [1;38;5;208mfailed to lookup address information: Name or service not known[0m
+[1;38;5;208mWARN[0m [prj2::net] [1;38;5;208mfailed to lookup address information: Name or service not known[0m
+[1;38;5;208mWARN[0m [prj2::net] [1;38;5;208mfailed to lookup address information: Name or service not known[0m
+[1;38;5;208mWARN[0m [prj2::net] [1;38;5;208mfailed to lookup address information: Name or service not known[0m
+[1;38;5;208mWARN[0m [prj2::net] [1;38;5;208mfailed to lookup address information: Name or service not known[0m
+[1;38;5;208mWARN[0m [prj2::net] [1;38;5;208mfailed to lookup address information: Name or service not known[0m
+[1;38;5;208mWARN[0m [prj2::net] [1;38;5;208mfailed to lookup address information: Name or service not known[0m
+INFO [prj2::net] hostname columba resolved to V4(172.19.0.6:42069)
+INFO [prj2::net] attempting to resolve hostname: raphus
+INFO [prj2::net] hostname raphus resolved to V4(172.19.0.3:42069)
+INFO [prj2::net] attempting to resolve hostname: turtur
+INFO [prj2::net] hostname turtur resolved to V4(172.19.0.2:42069)
+INFO [prj2::net] attempting to resolve hostname: geopelia
+INFO [prj2::net] hostname geopelia resolved to V4(172.19.0.4:42069)
+INFO [prj2::net] attempting to resolve hostname: trogon
+INFO [prj2::net] hostname trogon resolved to V4(172.19.0.5:42069)
+INFO [prj2] created system, starting paxos
+INFO [prj2::net] multicasting VCProof { server_id: 1, installed: 0 }
+INFO [prj2::net] multicasting VCProof { server_id: 1, installed: 0 }
+INFO [prj2::paxos] start view change to new view: 1
+INFO [prj2::net] multicasting ViewChange { server_id: 1, attempted: 1 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 1: 1
+INFO [prj2::paxos] insufficient proof to install view 1: 2

@@ -7,6 +7,7 @@ use std::time::Duration;
 use fehler::{throw, throws};
 use futures::select;
 use futures::stream::StreamExt;
+use log::{trace, info, warn, error};
 use tokio::net::{UdpFramed, UdpSocket};
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
@@ -20,6 +21,7 @@ pub const PORT_NUMBER: u16 = 42069;
 
 #[throws(io::Error)]
 async fn make_proc_socket(port: u16) -> ProtocolSocket {
+    trace!("creating local socket on port {}", port);
     UdpFramed::new(UdpSocket::bind(format!("0.0.0.0:{}", port)).await?, MessageCodec)
 }
 
@@ -41,18 +43,23 @@ impl Node {
     /// Attempt to resolve the given hostname repeatedly until success.
     #[throws(io::Error)]
     fn resolve_from_hostname<S: AsRef<str>>(hostname: S) -> Node {
+        info!("attempting to resolve hostname: {}", hostname.as_ref());
         let mut attempts = 0;
         while let Err(e) = format!("{}:{}", hostname.as_ref(), PORT_NUMBER).to_socket_addrs() {
             attempts += 1;
-            eprintln!("{}", e);
+            warn!("{}", e);
             thread::sleep(Duration::from_millis(500));
 
             // if it takes longer than five minutes to resolve the hostname, we'll just give up
-            if attempts > 2 * 60 * 5 { throw!(e) }
+            if attempts > 2 * 60 * 5 {
+                error!("{}", e);
+                throw!(e)
+            }
         }
 
         let addr =
             format!("{}:{}", hostname.as_ref(), PORT_NUMBER).to_socket_addrs()?.next().unwrap();
+        info!("hostname {} resolved to {:?}", hostname.as_ref(), addr);
         Node { addr }
     }
 }
@@ -67,7 +74,9 @@ impl Nodes {
 
     #[throws(io::Error)]
     pub fn multicast_send(&mut self, msg: Message) -> () {
+        info!("multicasting {:?}", msg);
         for node in self.1.iter() {
+            trace!("send to {:?}: {:?}", node.addr, msg);
             self.0.try_send((msg, node.addr)).unwrap();
         }
     }
@@ -127,11 +136,20 @@ impl System {
 
         loop {
             select! {
-                res = outgoing_future => res?,
-                res = incoming_future => res?,
-                opt_res = paxos_out.next() => match opt_res {
-                    Some(res) => res?,
-                    None => (),
+                res = outgoing_future => {
+                    trace!("selected outgoing future: {:?}", res);
+                    res?
+                },
+                res = incoming_future => {
+                    trace!("selected incoming future: {:?}", res);
+                    res?
+                },
+                opt_res = paxos_out.next() => {
+                    trace!("selected paxos stream: {:?}", opt_res);
+                    match opt_res {
+                        Some(res) => res?,
+                        None => (),
+                    }
                 },
             }
         }

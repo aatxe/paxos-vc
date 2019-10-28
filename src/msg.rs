@@ -2,6 +2,7 @@ use std::io;
 
 use bytes::{Buf, BufMut, BytesMut, IntoBuf};
 use fehler::{throw, throws};
+use log::trace;
 use tokio::codec::{Decoder, Encoder};
 
 #[derive(Clone, Copy, Debug)]
@@ -32,6 +33,7 @@ impl Decoder for MessageCodec {
     #[throws(io::Error)]
     fn decode(&mut self, src: &mut BytesMut) -> Option<Message> {
         let mut buf = src.clone().into_buf();
+        trace!("received buffer: {:?}", buf);
         if buf.remaining() < 4 { return None }
         match buf.get_u32_be() {
             // ViewChange
@@ -65,6 +67,7 @@ impl Encoder for MessageCodec {
 
     #[throws(io::Error)]
     fn encode(&mut self, msg: Message, dst: &mut BytesMut) -> () {
+        trace!("encoding: {:?}", msg);
         match msg {
             Message::ViewChange { server_id, attempted } => {
                 dst.put_u32_be(2);

@@ -9,6 +9,7 @@ use std::time::{Duration, Instant};
 use fehler::throws;
 use futures::{Poll, Sink, Stream};
 use futures::task::Context;
+use log::{trace, info, warn};
 use tokio::timer::{self, Delay, Interval};
 
 use crate::TestCase;
@@ -89,6 +90,7 @@ impl Paxos {
     /// invariant: a node should only ever try to install larger views than what it has installed
     #[throws(io::Error)]
     fn start_view_change(&mut self, new_view: u32) {
+        info!("start view change to new view: {}", new_view);
         assert!(new_view > self.current_view);
 
         // clear the current view change state
@@ -108,6 +110,7 @@ impl Paxos {
     }
 
     /// Installs the last attempted view if we have seen a majority attempting to install it
+    #[throws(io::Error)]
     fn install_view_if_possible(&mut self) {
         let vc_received = self.view_change_state.iter()
             .filter(|vc| vc.1 == self.last_attempted_view)
@@ -117,25 +120,37 @@ impl Paxos {
             // first, invoke test case hook to see if we should crash
             self.test_case_crash_hook();
             // then, we can go ahead and install the view (since we have no reconciliation phase)
-            self.install_view()
+            self.install_view()?;
+        } else {
+            info!("insufficient proof to install view {}: {}",
+                  self.last_attempted_view, vc_received);
         }
     }
 
     /// Installs the last attempted view unconditionally
     /// invariant: a view can only be installed with a proof in the form of either view changes from
     /// a majority of nodes or a vc proof message from another node
+    #[throws(io::Error)]
     fn install_view(&mut self) {
         // we should never install a view that is smaller than the one we already had
         assert!(self.last_attempted_view >= self.current_view);
 
         self.current_view = self.last_attempted_view;
+        info!("installed view {}", self.current_view);
         self.output_leader();
         self.test_case_exit_hook();
+
+        // send a VC proof immediately (not strictly necessary though)
+        self.nodes.multicast_send(Message::VCProof {
+            server_id: self.pid,
+            installed: self.current_view,
+        })?;
     }
 
     /// Resets the progress timer to its full length from now.
     fn reset_progress_timer(&mut self) {
         self.progress_timer.reset(Instant::now() + self.progress_length);
+        info!("progress timer reset!");
     }
 
     /// Outputs the current leader and the new view.
@@ -166,6 +181,7 @@ impl Paxos {
     /// \------------------------------/
     /// ```
     fn test_case_crash_hook(&self) {
+        trace!("crash hook invoked");
         use TestCase::*;
 
         match self.test_case {
@@ -177,14 +193,12 @@ impl Paxos {
     }
 
     /// Either exits the program or does nothing, depending on the pid and test case.
-    ///
-    /// In test case 2, the node quits after installing a view with leader 0 again.
-    /// In all other test cases, the node quits after installing a view.
     fn test_case_exit_hook(&self) -> () {
+        trace!("exit hook invoked");
         use TestCase::*;
 
         match self.test_case {
-            NormalCase => process::exit(0),
+            NormalCase if self.current_view == 1 => process::exit(0),
             FullRotation if self.current_view != 0 && self.current_leader() == 0 =>
                 process::exit(0),
             SingleCrash if self.current_view == 2 => process::exit(0),
@@ -204,10 +218,14 @@ impl Sink<Message> for Paxos {
 
     #[throws(io::Error)]
     fn start_send(mut self: Pin<&mut Self>, msg: Message) -> () {
+        trace!("processing message: {:?}", msg);
         match msg {
             Message::ViewChange { server_id, attempted } => {
                 // this view change message is stale
-                if attempted < self.last_attempted_view { return }
+                if attempted < self.last_attempted_view {
+                    warn!("stale view change message received: {}", attempted);
+                    return
+                }
 
                 // there's an ongoing view change to a higher view
                 if attempted > self.last_attempted_view {
@@ -216,13 +234,14 @@ impl Sink<Message> for Paxos {
 
                 // this message is for the view we want to install
                 self.view_change_state.insert(VC(server_id, attempted));
-                self.install_view_if_possible();
+                self.install_view_if_possible()?;
             }
 
-            Message::VCProof { installed, .. } => {
+            Message::VCProof { server_id, installed } => {
                 if installed == self.last_attempted_view && installed > self.current_view {
+                    info!("installing view {} based on VC Proof from {}", installed, server_id);
                     // someone installed this view before us, so we can too!
-                    self.install_view();
+                    self.install_view()?;
                 }
             }
         }
@@ -243,10 +262,13 @@ impl Stream for Paxos {
     fn poll_next(mut self: Pin<&mut Self>, ctx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         // note: we have to ensure we poll both futures each time!
         let poll_progress_timer = Future::poll(Pin::new(&mut self.progress_timer), ctx);
+        trace!("polled progress timer");
         let poll_vc_proof_timer = Stream::poll_next(Pin::new(&mut self.vc_proof_timer), ctx);
+        trace!("polled vc proof timer");
 
         // if progress timer expired,
         if let Poll::Ready(()) = poll_progress_timer {
+            trace!("progress timer expired");
             // then we'll start a view change to the next view
             let new_view = self.last_attempted_view + 1;
             return Poll::Ready(Some(self.start_view_change(new_view)))
@@ -254,6 +276,7 @@ impl Stream for Paxos {
 
         // if vc proof timer fired,
         if let Poll::Ready(Some(_)) = poll_vc_proof_timer {
+            trace!("vc proof timer fired");
            // then we'll multicast a vc proof to everyone 
             let server_id = self.pid;
             let installed = self.current_view;
@@ -262,6 +285,7 @@ impl Stream for Paxos {
             )));
         }
 
+        trace!("both timers pending");
         Poll::Pending
     }
 }

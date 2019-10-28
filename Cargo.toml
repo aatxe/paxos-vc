@@ -8,6 +8,8 @@ edition = "2018"
 bytes = "0.4"
 clap = "2.33"
 fehler = "1.0.0-alpha.1"
+flexi_logger = "0.14"
 futures-preview = { version = "0.3.0-alpha.19", features = ["async-await"]}
+log = "0.4"
 rand = "0.7"
 tokio = "0.2.0-alpha.6"

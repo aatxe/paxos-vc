@@ -12,6 +12,7 @@ use std::str::FromStr;
 
 use clap::{value_t, Arg, App};
 use fehler::throws;
+use log::info;
 
 use crate::net::System;
 
@@ -56,6 +57,13 @@ async fn main() -> Result<!, fehler::Exception> {
                 .value_name("SECONDS")
                 .help("Sets the amount for the vc proof timer in seconds, defaults to 3 seconds")
                 .takes_value(true)
+        ).arg(
+            Arg::with_name("log_dir")
+                .short("l")
+                .long("log")
+                .value_name("LOGDIR")
+                .help("Sets the folder to dump logs into, defaults to stderr if unset")
+                .takes_value(true)
         );
     let matches = cli.get_matches();
     let hostname = matches.value_of("name").unwrap();
@@ -64,8 +72,16 @@ async fn main() -> Result<!, fehler::Exception> {
     let progress_timer_length = value_t!(matches, "progress_timer_length", u64).unwrap_or(3);
     let vc_proof_timer_length = value_t!(matches, "vc_proof_timer_length", u64).unwrap_or(1);
 
+    let mut logger = flexi_logger::Logger::with_env_or_str("info");
+    if let Some(logfile) = matches.value_of("log_dir") {
+        logger = logger.log_to_file().directory(logfile).discriminant(hostname);
+    }
+    logger.start()?;
+
     let hostfile = load_hostfile(hostfile_path)?;
+    info!("loaded hostfile: {}", hostfile_path);
     let system = System::from_hosts(hostfile, hostname).await?;
+    info!("created system, starting paxos");
     system.paxos(test_case, progress_timer_length, vc_proof_timer_length).await
 }
 
