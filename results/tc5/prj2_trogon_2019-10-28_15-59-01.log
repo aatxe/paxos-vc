@@ -1,0 +1,223 @@
+INFO [prj2] loaded hostfile: hosts
+INFO [prj2::net] attempting to resolve hostname: columba
+INFO [prj2::net] hostname columba resolved to V4(172.19.0.6:42069)
+INFO [prj2::net] attempting to resolve hostname: raphus
+INFO [prj2::net] hostname raphus resolved to V4(172.19.0.3:42069)
+INFO [prj2::net] attempting to resolve hostname: turtur
+INFO [prj2::net] hostname turtur resolved to V4(172.19.0.2:42069)
+INFO [prj2::net] attempting to resolve hostname: geopelia
+INFO [prj2::net] hostname geopelia resolved to V4(172.19.0.5:42069)
+INFO [prj2::net] attempting to resolve hostname: trogon
+INFO [prj2::net] hostname trogon resolved to V4(172.19.0.4:42069)
+INFO [prj2] created system, starting paxos
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 0 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 0 }
+INFO [prj2::paxos] start view change to new view: 1
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 1 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 1: 1
+INFO [prj2::paxos] insufficient proof to install view 1: 2
+INFO [prj2::paxos] proof found: majority will install view 1
+INFO [prj2::paxos] installed view 1
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 2
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 2 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 2: 1
+INFO [prj2::paxos] insufficient proof to install view 2: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 3
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 3 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 3: 1
+INFO [prj2::paxos] insufficient proof to install view 3: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 4
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 4 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 4: 1
+INFO [prj2::paxos] insufficient proof to install view 4: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 5
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 5 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 5: 1
+INFO [prj2::paxos] insufficient proof to install view 5: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 6
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 6 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 6: 1
+INFO [prj2::paxos] insufficient proof to install view 6: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 7
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 7 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 7: 1
+INFO [prj2::paxos] insufficient proof to install view 7: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 8
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 8 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 8: 1
+INFO [prj2::paxos] insufficient proof to install view 8: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 9
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 9 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 9: 1
+INFO [prj2::paxos] insufficient proof to install view 9: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 10
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 10 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 10: 1
+INFO [prj2::paxos] insufficient proof to install view 10: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 11
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 11 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 11: 1
+INFO [prj2::paxos] insufficient proof to install view 11: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 12
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 12 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 12: 1
+INFO [prj2::paxos] insufficient proof to install view 12: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 13
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 13 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 13: 1
+INFO [prj2::paxos] insufficient proof to install view 13: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 14
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 14 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 14: 1
+INFO [prj2::paxos] insufficient proof to install view 14: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 15
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 15 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 15: 1
+INFO [prj2::paxos] insufficient proof to install view 15: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 16
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 16 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 16: 1
+INFO [prj2::paxos] insufficient proof to install view 16: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 17
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 17 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 17: 1
+INFO [prj2::paxos] insufficient proof to install view 17: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 18
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 18 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 18: 1
+INFO [prj2::paxos] insufficient proof to install view 18: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 19
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 19 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 19: 1
+INFO [prj2::paxos] insufficient proof to install view 19: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 20
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 20 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 20: 1
+INFO [prj2::paxos] insufficient proof to install view 20: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 21
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 21 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 21: 1
+INFO [prj2::paxos] insufficient proof to install view 21: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 22
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 22 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 22: 1
+INFO [prj2::paxos] insufficient proof to install view 22: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 23
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 23 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 23: 1
+INFO [prj2::paxos] insufficient proof to install view 23: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 24
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 24 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 24: 1
+INFO [prj2::paxos] insufficient proof to install view 24: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 25
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 25 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 25: 1
+INFO [prj2::paxos] insufficient proof to install view 25: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }
+INFO [prj2::paxos] start view change to new view: 26
+INFO [prj2::net] multicasting ViewChange { server_id: 4, attempted: 26 }
+INFO [prj2::paxos] progress timer reset!
+INFO [prj2::paxos] insufficient proof to install view 26: 1
+INFO [prj2::paxos] insufficient proof to install view 26: 2
+INFO [prj2::net] multicasting VCProof { server_id: 4, installed: 1 }

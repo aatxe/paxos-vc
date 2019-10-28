@@ -1,4 +1,4 @@
-thread 'main' panicked at 'crashing', src/paxos.rs:190:61
+thread 'main' panicked at 'crashing', src/paxos.rs:198:61
 stack backtrace:
    0: backtrace::backtrace::libunwind::trace
              at /cargo/registry/src/github.com-1ecc6299db9ec823/backtrace-0.3.37/src/backtrace/libunwind.rs:88
@@ -25,11 +25,11 @@ stack backtrace:
   11: std::panicking::begin_panic
              at /rustc/22bc9e1d9ca49ee4f5cd953088ab09c238a6dd26/src/libstd/panicking.rs:407
   12: prj2::paxos::Paxos::test_case_crash_hook
-             at src/paxos.rs:190
+             at src/paxos.rs:198
   13: prj2::paxos::Paxos::install_view_if_possible
-             at src/paxos.rs:121
+             at src/paxos.rs:129
   14: <prj2::paxos::Paxos as futures_sink::Sink<prj2::msg::Message>>::start_send
-             at src/paxos.rs:240
+             at src/paxos.rs:245
   15: <futures_util::stream::split::SplitSink<S,Item> as futures_sink::Sink<Item>>::poll_flush
              at /usr/local/cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-preview-0.3.0-alpha.19/src/stream/split.rs:86
   16: <futures_util::stream::split::SplitSink<S,Item> as futures_sink::Sink<Item>>::poll_ready
