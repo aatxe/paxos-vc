@@ -10,4 +10,4 @@ I once again continued to use type-based abstractions to define explicit encoder
 
 ## Implementation Issues
 
-This time around, there wreen't really a lot of implementation issues. I started immediately in Rust, rather than using C. So, dynamic memory management didn't give me a hard time. I spent some of the time learning a bit more about the new asynchronous networking support in Rust, and was able to learn about some useful features that made it easier to structure my code nicely (namely, I found these new macros for polling a number of futures simultaneously which let you describe what to do after getting each result).
+This time around, there weren't really a lot of implementation issues. I started immediately in Rust, rather than using C. So, dynamic memory management didn't give me a hard time. I spent some of the time learning a bit more about the new asynchronous networking support in Rust, and was able to learn about some useful features that made it easier to structure my code nicely (namely, I found these new macros for polling a number of futures simultaneously which let you describe what to do after getting each result).
